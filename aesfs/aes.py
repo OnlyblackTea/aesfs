@@ -228,6 +228,9 @@ class AES:
         if padding_length > 16 or padding_length == 0:
             raise ValueError("Invalid padding")
         
+        if len(data) < padding_length:
+            raise ValueError("Invalid padding")
+        
         # Verify padding
         for i in range(padding_length):
             if data[-1 - i] != padding_length:

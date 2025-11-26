@@ -51,6 +51,6 @@ This repository is **aesfs** - an AES (Advanced Encryption Standard) filesystem 
 When working on this repository, always consider:
 - Is this cryptographic implementation secure?
 - Are we following AES best practices?
-- Is the filesystem interface intuitive and safe?
+- Is the filesystem interface intuitive and safe (proper access controls, secure file permissions, encrypted data at rest)?
 - Are error messages helpful without exposing sensitive information?
 - Is the code performance-efficient for filesystem operations?

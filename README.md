@@ -8,6 +8,7 @@ A clean, educational AES (Advanced Encryption Standard) implementation in Python
 - **Low Coupling**: Minimal dependencies between modules
 - **Support for Multiple Key Sizes**: AES-128, AES-192, and AES-256
 - **PKCS7 Padding**: Automatic padding for messages of any length
+- **Logging System**: Optional logging for debugging and monitoring encryption operations
 - **Well-Tested**: Comprehensive test suite for all components
 - **Pure Python**: No external dependencies required
 
@@ -19,6 +20,7 @@ The implementation is structured with clear separation of concerns:
 - **`galois_field.py`**: Galois Field GF(2^8) arithmetic operations
 - **`transformations.py`**: Core AES transformations (SubBytes, ShiftRows, MixColumns, AddRoundKey)
 - **`key_expansion.py`**: Key expansion algorithm
+- **`logger.py`**: Logging configuration and utilities
 - **`aes.py`**: Main AES cipher orchestrating all components
 
 ## Installation
@@ -85,6 +87,27 @@ ciphertext = cipher.encrypt(plaintext, padding=False)
 decrypted = cipher.decrypt(ciphertext, padding=False)
 ```
 
+### With Logging
+
+```python
+import logging
+from aesfs import AES, setup_logger
+
+# Set up logger with desired level
+setup_logger("aesfs", level=logging.INFO)
+
+# Enable logging when creating cipher
+cipher = AES(key=b'This is a key123', key_size=128, enable_logging=True)
+
+# Encryption operations will now be logged
+ciphertext = cipher.encrypt(b'Hello, World!')
+# Output: INFO - AES cipher initialized with 128-bit key (10 rounds)
+#         INFO - Starting encryption of 13 bytes
+#         INFO - Encryption complete: 16 bytes
+```
+
+For detailed round-by-round logging, use `logging.DEBUG` level.
+
 ## Running Tests
 
 ```bash
@@ -97,6 +120,7 @@ See the `examples/` directory for more usage examples:
 
 ```bash
 python examples/basic_usage.py
+python examples/logging_example.py
 ```
 
 ## Design Principles

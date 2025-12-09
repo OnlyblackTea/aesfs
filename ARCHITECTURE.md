@@ -30,9 +30,15 @@ Each module in AESFS has a **single, well-defined responsibility**:
    - Round key extraction
    - No encryption/decryption logic
 
-5. **`aes.py`** - Orchestrates encryption/decryption
+5. **`logger.py`** - Provides logging functionality
+   - Logger configuration and setup
+   - No dependencies on other AESFS modules
+   - Uses Python's standard logging library
+
+6. **`aes.py`** - Orchestrates encryption/decryption
    - High-level encrypt/decrypt methods
    - Padding management
+   - Optional logging integration
    - Delegates to other modules for actual operations
 
 ### Low Coupling
@@ -40,23 +46,24 @@ Each module in AESFS has a **single, well-defined responsibility**:
 Modules have **minimal dependencies** on each other:
 
 ```
-constants.py         galois_field.py
-     ↓                      ↓
-     └──────────┬───────────┘
-                ↓
-        transformations.py
-                ↓
-                └──────────┐
-                           ↓
-    key_expansion.py → aes.py
+constants.py         galois_field.py      logger.py
+     ↓                      ↓                  ↓
+     └──────────┬───────────┘                  ↓
+                ↓                               ↓
+        transformations.py                      ↓
+                ↓                               ↓
+                └──────────┐                    ↓
+                           ↓                    ↓
+    key_expansion.py → aes.py ←────────────────┘
 ```
 
 Dependency rules:
 - `constants.py` has no dependencies
 - `galois_field.py` has no dependencies
+- `logger.py` has no dependencies on other AESFS modules
 - `transformations.py` depends only on constants and galois_field
 - `key_expansion.py` depends only on constants
-- `aes.py` depends on all modules but implements no low-level logic
+- `aes.py` depends on transformations, key_expansion, and logger modules
 
 ## Module Details
 
@@ -114,6 +121,22 @@ Dependency rules:
 **Cohesion**: High - only key expansion logic
 **Coupling**: Low - depends only on constants
 
+### logger.py
+
+**Purpose**: Provide logging configuration and utilities
+
+**Key Functions**:
+- `setup_logger(name, level)`: Configure and return a logger
+- `get_logger(name)`: Get an existing logger instance
+
+**Cohesion**: High - only logging functionality
+**Coupling**: None - no dependencies on other AESFS modules
+
+**Features**:
+- Configurable logging levels (DEBUG, INFO, WARNING, ERROR)
+- Console output with timestamps
+- Thread-safe logging for concurrent operations
+
 ### aes.py
 
 **Purpose**: Provide high-level AES encryption/decryption interface
@@ -122,7 +145,7 @@ Dependency rules:
 - `AES`: Main cipher class
 
 **Key Methods**:
-- `__init__(key, key_size)`: Initialize with a key
+- `__init__(key, key_size, enable_logging)`: Initialize with a key and optional logging
 - `encrypt_block(plaintext)`: Encrypt single 16-byte block
 - `decrypt_block(ciphertext)`: Decrypt single 16-byte block
 - `encrypt(plaintext, padding)`: Encrypt data with optional padding
@@ -130,8 +153,13 @@ Dependency rules:
 - `_pad(data)`: Apply PKCS7 padding
 - `_unpad(data)`: Remove PKCS7 padding
 
-**Cohesion**: High - only orchestration and padding
-**Coupling**: Medium - depends on all modules but doesn't implement low-level operations
+**Logging Capabilities**:
+- INFO level: Logs initialization, encryption/decryption start/complete
+- DEBUG level: Logs detailed round-by-round operations
+- ERROR level: Logs validation errors and exceptions
+
+**Cohesion**: High - only orchestration, padding, and logging integration
+**Coupling**: Medium - depends on transformations, key_expansion, and logger modules
 
 ## Design Benefits
 
@@ -143,7 +171,7 @@ Dependency rules:
 ### Testability
 - Each module can be tested in isolation
 - Mock dependencies easily due to clear interfaces
-- 28 unit tests cover all functionality
+- 32 unit tests cover all functionality including logging
 
 ### Extensibility
 - Easy to add new key sizes

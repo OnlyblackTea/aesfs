@@ -6,6 +6,7 @@ High cohesion: Contains only the high-level encryption/decryption logic.
 Low coupling: Orchestrates other modules without implementing low-level details.
 """
 
+import logging
 from typing import List
 from .key_expansion import expand_key, get_round_key
 from .transformations import (
@@ -14,6 +15,7 @@ from .transformations import (
     mix_columns, inv_mix_columns,
     add_round_key
 )
+from .logger import get_logger
 
 
 class AES:
@@ -24,26 +26,36 @@ class AES:
     orchestrating the various transformation and key expansion modules.
     """
     
-    def __init__(self, key: bytes, key_size: int = 128):
+    def __init__(self, key: bytes, key_size: int = 128, enable_logging: bool = False):
         """
         Initialize the AES cipher with a key.
         
         Args:
             key: The encryption key (16, 24, or 32 bytes)
             key_size: Key size in bits (128, 192, or 256)
+            enable_logging: Enable logging for encryption/decryption operations (default: False)
         
         Raises:
             ValueError: If key or key_size is invalid
         """
+        self.logger = get_logger()
+        
+        if enable_logging:
+            self.logger.setLevel(logging.INFO)
+        
         if key_size not in (128, 192, 256):
+            self.logger.error(f"Invalid key size: {key_size}")
             raise ValueError("Key size must be 128, 192, or 256 bits")
         
         if len(key) != key_size // 8:
+            self.logger.error(f"Key length mismatch: expected {key_size // 8} bytes, got {len(key)}")
             raise ValueError(f"Key must be {key_size // 8} bytes for {key_size}-bit AES")
         
         self.key_size = key_size
         self.nr = {128: 10, 192: 12, 256: 14}[key_size]
         self.expanded_key = expand_key(key, key_size)
+        
+        self.logger.info(f"AES cipher initialized with {key_size}-bit key ({self.nr} rounds)")
     
     def _bytes_to_state(self, block: bytes) -> List[List[int]]:
         """
@@ -93,24 +105,30 @@ class AES:
         Raises:
             ValueError: If plaintext is not 16 bytes
         """
+        self.logger.debug(f"Encrypting block: {plaintext.hex()}")
         state = self._bytes_to_state(plaintext)
         
         # Initial round
+        self.logger.debug("Initial round: AddRoundKey")
         add_round_key(state, get_round_key(self.expanded_key, 0))
         
         # Main rounds
         for round_num in range(1, self.nr):
+            self.logger.debug(f"Round {round_num}: SubBytes, ShiftRows, MixColumns, AddRoundKey")
             sub_bytes(state)
             shift_rows(state)
             mix_columns(state)
             add_round_key(state, get_round_key(self.expanded_key, round_num))
         
         # Final round (no MixColumns)
+        self.logger.debug(f"Final round {self.nr}: SubBytes, ShiftRows, AddRoundKey")
         sub_bytes(state)
         shift_rows(state)
         add_round_key(state, get_round_key(self.expanded_key, self.nr))
         
-        return self._state_to_bytes(state)
+        ciphertext = self._state_to_bytes(state)
+        self.logger.debug(f"Block encrypted: {ciphertext.hex()}")
+        return ciphertext
     
     def decrypt_block(self, ciphertext: bytes) -> bytes:
         """
@@ -125,24 +143,30 @@ class AES:
         Raises:
             ValueError: If ciphertext is not 16 bytes
         """
+        self.logger.debug(f"Decrypting block: {ciphertext.hex()}")
         state = self._bytes_to_state(ciphertext)
         
         # Initial round
+        self.logger.debug("Initial round: AddRoundKey")
         add_round_key(state, get_round_key(self.expanded_key, self.nr))
         
         # Main rounds
         for round_num in range(self.nr - 1, 0, -1):
+            self.logger.debug(f"Round {round_num}: InvShiftRows, InvSubBytes, AddRoundKey, InvMixColumns")
             inv_shift_rows(state)
             inv_sub_bytes(state)
             add_round_key(state, get_round_key(self.expanded_key, round_num))
             inv_mix_columns(state)
         
         # Final round (no InvMixColumns)
+        self.logger.debug("Final round: InvShiftRows, InvSubBytes, AddRoundKey")
         inv_shift_rows(state)
         inv_sub_bytes(state)
         add_round_key(state, get_round_key(self.expanded_key, 0))
         
-        return self._state_to_bytes(state)
+        plaintext = self._state_to_bytes(state)
+        self.logger.debug(f"Block decrypted: {plaintext.hex()}")
+        return plaintext
     
     def encrypt(self, plaintext: bytes, padding: bool = True) -> bytes:
         """
@@ -155,16 +179,24 @@ class AES:
         Returns:
             Encrypted ciphertext
         """
+        self.logger.info(f"Starting encryption of {len(plaintext)} bytes")
+        
         if padding:
             plaintext = self._pad(plaintext)
+            self.logger.debug(f"Applied PKCS7 padding, new length: {len(plaintext)} bytes")
         elif len(plaintext) % 16 != 0:
+            self.logger.error(f"Invalid plaintext length: {len(plaintext)} (must be multiple of 16)")
             raise ValueError("Plaintext length must be multiple of 16 when padding is disabled")
+        
+        num_blocks = len(plaintext) // 16
+        self.logger.debug(f"Encrypting {num_blocks} blocks")
         
         ciphertext = b''
         for i in range(0, len(plaintext), 16):
             block = plaintext[i:i + 16]
             ciphertext += self.encrypt_block(block)
         
+        self.logger.info(f"Encryption complete: {len(ciphertext)} bytes")
         return ciphertext
     
     def decrypt(self, ciphertext: bytes, padding: bool = True) -> bytes:
@@ -181,8 +213,14 @@ class AES:
         Raises:
             ValueError: If ciphertext length is not a multiple of 16
         """
+        self.logger.info(f"Starting decryption of {len(ciphertext)} bytes")
+        
         if len(ciphertext) % 16 != 0:
+            self.logger.error(f"Invalid ciphertext length: {len(ciphertext)} (must be multiple of 16)")
             raise ValueError("Ciphertext length must be multiple of 16")
+        
+        num_blocks = len(ciphertext) // 16
+        self.logger.debug(f"Decrypting {num_blocks} blocks")
         
         plaintext = b''
         for i in range(0, len(ciphertext), 16):
@@ -191,7 +229,9 @@ class AES:
         
         if padding:
             plaintext = self._unpad(plaintext)
+            self.logger.debug("Removed PKCS7 padding")
         
+        self.logger.info(f"Decryption complete: {len(plaintext)} bytes")
         return plaintext
     
     def _pad(self, data: bytes) -> bytes:

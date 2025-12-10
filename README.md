@@ -8,9 +8,11 @@ A clean, educational AES (Advanced Encryption Standard) implementation in Python
 - **Low Coupling**: Minimal dependencies between modules
 - **Support for Multiple Key Sizes**: AES-128, AES-192, and AES-256
 - **PKCS7 Padding**: Automatic padding for messages of any length
+- **Configuration File Support**: External configuration files (JSON, YAML) for easy parameter management
 - **Logging System**: Optional logging for debugging and monitoring encryption operations
+- **PEP 8 Compliant**: Follows Python code quality standards with automated linting
 - **Well-Tested**: Comprehensive test suite for all components
-- **Pure Python**: No external dependencies required
+- **Pure Python**: No external dependencies required (PyYAML optional for YAML config files)
 
 ## Architecture
 
@@ -20,6 +22,7 @@ The implementation is structured with clear separation of concerns:
 - **`galois_field.py`**: Galois Field GF(2^8) arithmetic operations
 - **`transformations.py`**: Core AES transformations (SubBytes, ShiftRows, MixColumns, AddRoundKey)
 - **`key_expansion.py`**: Key expansion algorithm
+- **`config.py`**: Configuration management for AES parameters
 - **`logger.py`**: Logging configuration and utilities
 - **`aes.py`**: Main AES cipher orchestrating all components
 
@@ -33,6 +36,12 @@ Or for development:
 
 ```bash
 pip install -e .
+```
+
+For YAML configuration file support (optional):
+
+```bash
+pip install pyyaml
 ```
 
 ## Usage
@@ -67,6 +76,48 @@ cipher_192 = AES(b'0123456789abcdef01234567', key_size=192)
 
 # AES-256 (32-byte key)
 cipher_256 = AES(b'0123456789abcdef0123456789abcdef', key_size=256)
+```
+
+### Using Configuration Files
+
+You can store AES parameters in external configuration files for easy management:
+
+**config.json:**
+```json
+{
+  "key_size": 256,
+  "padding": true,
+  "enable_logging": true,
+  "logging_level": "INFO"
+}
+```
+
+**config.yaml:**
+```yaml
+key_size: 256
+padding: true
+enable_logging: true
+logging_level: INFO
+```
+
+**Using configuration in code:**
+```python
+from aesfs import AES, load_config
+
+# Load from JSON file
+config = load_config('config.json')
+cipher = AES(key, config=config)
+
+# Load from YAML file (requires PyYAML)
+config = load_config('config.yaml')
+cipher = AES(key, config=config)
+
+# Use dictionary configuration
+config_dict = {'key_size': 192, 'padding': True}
+cipher = AES(key, config=config_dict)
+
+# Override config with explicit parameters
+cipher = AES(key, key_size=128, config='config.yaml')  # key_size overrides config
 ```
 
 ### Block Encryption
@@ -114,6 +165,40 @@ For detailed round-by-round logging, use `logging.DEBUG` level.
 python -m unittest discover tests
 ```
 
+## Code Quality
+
+This project follows PEP 8 coding standards and includes configuration for automated code quality tools.
+
+### Linting and Formatting
+
+Install development dependencies:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Run code formatting with Black:
+
+```bash
+black aesfs/ tests/ examples/
+```
+
+Run linting with flake8:
+
+```bash
+flake8 aesfs/ tests/ examples/
+```
+
+Run static type checking with mypy:
+
+```bash
+mypy aesfs/
+```
+
+The project includes configuration files for these tools:
+- `.flake8` - Flake8 configuration for PEP 8 compliance
+- `pyproject.toml` - Configuration for Black, Pylint, and MyPy
+
 ## Examples
 
 See the `examples/` directory for more usage examples:
@@ -121,6 +206,7 @@ See the `examples/` directory for more usage examples:
 ```bash
 python examples/basic_usage.py
 python examples/logging_example.py
+python examples/config_example.py
 ```
 
 ## Design Principles

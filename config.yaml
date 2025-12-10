@@ -1,0 +1,14 @@
+# AES Configuration File
+# This file contains configurable parameters for AES encryption
+
+# Key size in bits (128, 192, or 256)
+key_size: 256
+
+# Whether to use PKCS7 padding (true/false)
+padding: true
+
+# Enable logging for encryption/decryption operations (true/false)
+enable_logging: true
+
+# Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+logging_level: INFO

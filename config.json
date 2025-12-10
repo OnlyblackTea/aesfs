@@ -1,0 +1,6 @@
+{
+  "key_size": 128,
+  "padding": true,
+  "enable_logging": false,
+  "logging_level": "INFO"
+}

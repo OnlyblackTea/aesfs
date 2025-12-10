@@ -20,7 +20,7 @@ def sub_bytes(state: List[List[int]]) -> None:
     """
     Apply SubBytes transformation to the state.
     Substitutes each byte in the state with a corresponding value from the S-box.
-    
+
     Args:
         state: 4x4 state matrix to transform (modified in place)
     """
@@ -32,7 +32,7 @@ def sub_bytes(state: List[List[int]]) -> None:
 def inv_sub_bytes(state: List[List[int]]) -> None:
     """
     Apply inverse SubBytes transformation to the state.
-    
+
     Args:
         state: 4x4 state matrix to transform (modified in place)
     """
@@ -45,7 +45,7 @@ def shift_rows(state: List[List[int]]) -> None:
     """
     Apply ShiftRows transformation to the state.
     Cyclically shifts the bytes in each row by different offsets.
-    
+
     Args:
         state: 4x4 state matrix to transform (modified in place)
     """
@@ -61,7 +61,7 @@ def shift_rows(state: List[List[int]]) -> None:
 def inv_shift_rows(state: List[List[int]]) -> None:
     """
     Apply inverse ShiftRows transformation to the state.
-    
+
     Args:
         state: 4x4 state matrix to transform (modified in place)
     """
@@ -78,7 +78,7 @@ def mix_columns(state: List[List[int]]) -> None:
     """
     Apply MixColumns transformation to the state.
     Performs matrix multiplication in GF(2^8) for each column.
-    
+
     Args:
         state: 4x4 state matrix to transform (modified in place)
     """
@@ -93,23 +93,31 @@ def mix_columns(state: List[List[int]]) -> None:
 def inv_mix_columns(state: List[List[int]]) -> None:
     """
     Apply inverse MixColumns transformation to the state.
-    
+
     Args:
         state: 4x4 state matrix to transform (modified in place)
     """
     for i in range(4):
         col = [state[j][i] for j in range(4)]
-        state[0][i] = gmul_14(col[0]) ^ gmul_11(col[1]) ^ gmul_13(col[2]) ^ gmul_9(col[3])
-        state[1][i] = gmul_9(col[0]) ^ gmul_14(col[1]) ^ gmul_11(col[2]) ^ gmul_13(col[3])
-        state[2][i] = gmul_13(col[0]) ^ gmul_9(col[1]) ^ gmul_14(col[2]) ^ gmul_11(col[3])
-        state[3][i] = gmul_11(col[0]) ^ gmul_13(col[1]) ^ gmul_9(col[2]) ^ gmul_14(col[3])
+        state[0][i] = (
+            gmul_14(col[0]) ^ gmul_11(col[1]) ^ gmul_13(col[2]) ^ gmul_9(col[3])
+        )
+        state[1][i] = (
+            gmul_9(col[0]) ^ gmul_14(col[1]) ^ gmul_11(col[2]) ^ gmul_13(col[3])
+        )
+        state[2][i] = (
+            gmul_13(col[0]) ^ gmul_9(col[1]) ^ gmul_14(col[2]) ^ gmul_11(col[3])
+        )
+        state[3][i] = (
+            gmul_11(col[0]) ^ gmul_13(col[1]) ^ gmul_9(col[2]) ^ gmul_14(col[3])
+        )
 
 
 def add_round_key(state: List[List[int]], round_key: List[int]) -> None:
     """
     Apply AddRoundKey transformation to the state.
     XORs the state with the round key.
-    
+
     Args:
         state: 4x4 state matrix to transform (modified in place)
         round_key: 16-byte round key

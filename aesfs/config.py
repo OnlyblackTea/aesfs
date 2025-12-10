@@ -78,7 +78,7 @@ class AESConfig:
         """
         if key_size not in (128, 192, 256):
             raise ValueError(
-                f"Invalid key_size: {key_size}. " f"Must be 128, 192, or 256 bits"
+                f"Invalid key_size: {key_size}. Must be 128, 192, or 256 bits"
             )
         return key_size
 
@@ -99,7 +99,7 @@ class AESConfig:
         level_upper = level.upper()
         if level_upper not in valid_levels:
             raise ValueError(
-                f"Invalid logging_level: {level}. " f"Must be one of {valid_levels}"
+                f"Invalid logging_level: {level}. Must be one of {valid_levels}"
             )
         return level_upper
 
@@ -238,5 +238,5 @@ def load_config(config_source: Optional[Any] = None) -> AESConfig:
     else:
         raise TypeError(
             f"Invalid config_source type: {type(config_source)}. "
-            f"Expected None, dict, str, or AESConfig"
+            "Expected None, dict, str, or AESConfig"
         )

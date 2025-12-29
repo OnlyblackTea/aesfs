@@ -180,6 +180,9 @@ class DiffieHellman:
         """
         Get the shared secret as bytes, suitable for use as an AES key.
         
+        Note: This is a simplified key derivation for educational purposes.
+        In production, use a proper Key Derivation Function (KDF) like HKDF or PBKDF2.
+        
         Args:
             byte_length: Desired length in bytes (16, 24, or 32 for AES-128/192/256)
         
@@ -198,7 +201,8 @@ class DiffieHellman:
             byteorder='big'
         )
         
-        # Use a simple derivation: hash-like truncation or padding
+        # Simple derivation: hash-like truncation or padding
+        # NOTE: For production use, implement proper KDF (e.g., HKDF, PBKDF2)
         if len(secret_bytes) >= byte_length:
             # Truncate to desired length
             return secret_bytes[:byte_length]
@@ -211,8 +215,9 @@ def modular_exponentiation(base: int, exponent: int, modulus: int) -> int:
     """
     Compute (base^exponent) mod modulus efficiently.
     
-    This is a helper function that uses Python's built-in pow() function
-    which implements efficient modular exponentiation.
+    This is a convenience wrapper around Python's built-in pow() function,
+    which implements efficient modular exponentiation using binary exponentiation.
+    Provided for clarity and educational purposes.
     
     Args:
         base: The base number
@@ -221,6 +226,10 @@ def modular_exponentiation(base: int, exponent: int, modulus: int) -> int:
     
     Returns:
         (base^exponent) mod modulus
+    
+    Example:
+        >>> modular_exponentiation(5, 6, 23)
+        8
     """
     return pow(base, exponent, modulus)
 
@@ -299,7 +308,7 @@ def generate_parameters(bit_length: int = 2048) -> Tuple[int, int]:
     while True:
         # Generate a random odd number
         prime = secrets.randbits(bit_length)
-        prime |= (1 << bit_length - 1) | 1  # Set MSB and LSB to 1
+        prime |= (1 << (bit_length - 1)) | 1  # Set MSB and LSB to 1
         
         if is_prime(prime):
             return prime, generator

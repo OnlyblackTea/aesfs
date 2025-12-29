@@ -30,12 +30,18 @@ Each module in AESFS has a **single, well-defined responsibility**:
    - Round key extraction
    - No encryption/decryption logic
 
-5. **`logger.py`** - Provides logging functionality
+5. **`diffie_hellman.py`** - Implements Diffie-Hellman key exchange
+   - Key generation (private and public keys)
+   - Shared secret computation
+   - Helper functions for modular arithmetic and prime checking
+   - No dependencies on other AESFS modules
+
+6. **`logger.py`** - Provides logging functionality
    - Logger configuration and setup
    - No dependencies on other AESFS modules
    - Uses Python's standard logging library
 
-6. **`aes.py`** - Orchestrates encryption/decryption
+7. **`aes.py`** - Orchestrates encryption/decryption
    - High-level encrypt/decrypt methods
    - Padding management
    - Optional logging integration
@@ -46,20 +52,21 @@ Each module in AESFS has a **single, well-defined responsibility**:
 Modules have **minimal dependencies** on each other:
 
 ```
-constants.py         galois_field.py      logger.py
-     ↓                      ↓                  ↓
-     └──────────┬───────────┘                  ↓
-                ↓                               ↓
-        transformations.py                      ↓
-                ↓                               ↓
-                └──────────┐                    ↓
-                           ↓                    ↓
-    key_expansion.py → aes.py ←────────────────┘
+constants.py    galois_field.py    logger.py    diffie_hellman.py
+     ↓                 ↓                ↓                 (independent)
+     └────────┬────────┘                ↓
+              ↓                          ↓
+      transformations.py                 ↓
+              ↓                          ↓
+              └──────────┐               ↓
+                         ↓               ↓
+      key_expansion.py → aes.py ←───────┘
 ```
 
 Dependency rules:
 - `constants.py` has no dependencies
 - `galois_field.py` has no dependencies
+- `diffie_hellman.py` has no dependencies on other AESFS modules
 - `logger.py` has no dependencies on other AESFS modules
 - `transformations.py` depends only on constants and galois_field
 - `key_expansion.py` depends only on constants
@@ -121,6 +128,35 @@ Dependency rules:
 **Cohesion**: High - only key expansion logic
 **Coupling**: Low - depends only on constants
 
+### diffie_hellman.py
+
+**Purpose**: Implement Diffie-Hellman key exchange protocol
+
+**Key Classes**:
+- `DiffieHellman`: Main class for key exchange
+
+**Key Methods**:
+- `__init__(prime, generator)`: Initialize with parameters (uses standard 2048-bit prime by default)
+- `generate_private_key(key_size_bits)`: Generate a random private key
+- `generate_public_key()`: Compute public key from private key
+- `compute_shared_secret(other_public_key)`: Compute shared secret from other party's public key
+- `get_shared_secret_bytes(byte_length)`: Convert shared secret to bytes for use as AES key
+
+**Helper Functions**:
+- `modular_exponentiation(base, exponent, modulus)`: Efficient modular exponentiation
+- `is_prime(n, k)`: Miller-Rabin primality test
+- `generate_parameters(bit_length)`: Generate custom DH parameters
+
+**Constants**:
+- `STANDARD_PRIME_2048`: RFC 3526 standard 2048-bit prime
+- `STANDARD_GENERATOR`: Standard generator (2)
+
+**Cohesion**: High - only key exchange logic
+**Coupling**: None - no dependencies on other AESFS modules
+
+**Use Case**:
+Allows two parties to establish a shared secret over an insecure channel, which can then be used as an AES encryption key.
+
 ### logger.py
 
 **Purpose**: Provide logging configuration and utilities
@@ -171,12 +207,13 @@ Dependency rules:
 ### Testability
 - Each module can be tested in isolation
 - Mock dependencies easily due to clear interfaces
-- 32 unit tests cover all functionality including logging
+- 52 unit tests cover all functionality including logging and Diffie-Hellman
 
 ### Extensibility
 - Easy to add new key sizes
 - Can swap implementations of specific transformations
 - Can add new modes of operation (CBC, CTR, etc.)
+- Diffie-Hellman can be extended with custom parameter generation
 
 ### Readability
 - Clear separation of concerns
@@ -191,14 +228,19 @@ Each module has dedicated tests:
 - `test_transformations.py`: Tests each transformation and its inverse
 - `test_key_expansion.py`: Tests key expansion for all key sizes
 - `test_aes.py`: Tests end-to-end encryption/decryption
+- `test_diffie_hellman.py`: Tests key exchange protocol and helper functions
+- `test_logging.py`: Tests logging functionality
 
 Tests verify:
 - Correct functionality
 - Inverse operations work correctly
 - Error handling for invalid inputs
 - Support for all key sizes (128, 192, 256 bits)
+- Key exchange produces matching shared secrets
 
-## Usage Example
+## Usage Examples
+
+### Basic AES Encryption
 
 ```python
 from aesfs import AES
@@ -215,15 +257,40 @@ decrypted = cipher.decrypt(ciphertext)
 assert decrypted == plaintext
 ```
 
+### Diffie-Hellman Key Exchange with AES
+
+```python
+from aesfs import DiffieHellman, AES
+
+# Alice and Bob perform key exchange
+alice = DiffieHellman()
+alice.generate_private_key()
+alice_public = alice.generate_public_key()
+
+bob = DiffieHellman()
+bob.generate_private_key()
+bob_public = bob.generate_public_key()
+
+# Compute shared secrets
+alice.compute_shared_secret(bob_public)
+bob.compute_shared_secret(alice_public)
+
+# Derive AES key and encrypt
+aes_key = alice.get_shared_secret_bytes(32)
+cipher = AES(aes_key, key_size=256)
+ciphertext = cipher.encrypt(b'Secret message')
+```
+
 ## Security Notice
 
 This is an **educational implementation** designed to demonstrate clean architecture principles. For production use, please use established cryptographic libraries like `cryptography` or `pycryptodome` that have been thoroughly vetted for security.
 
 Key limitations:
 - No protection against timing attacks
-- No secure key generation utilities
+- No secure key generation utilities (though DH uses cryptographically secure random)
 - No support for modes of operation beyond ECB
 - No hardware acceleration
+- Diffie-Hellman shared secret derivation is simplified (use proper KDF in production)
 
 ## Future Enhancements
 

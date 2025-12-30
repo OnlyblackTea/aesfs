@@ -113,15 +113,15 @@ For detailed round-by-round logging, use `logging.DEBUG` level.
 ### Diffie-Hellman Key Exchange
 
 ```python
-from aesfs import DiffieHellman, AES
+from aesfs import DH, AES
 
 # Alice generates her keys
-alice = DiffieHellman()
+alice = DH()
 alice.generate_private_key()
 alice_public = alice.generate_public_key()
 
 # Bob generates his keys
-bob = DiffieHellman()
+bob = DH()
 bob.generate_private_key()
 bob_public = bob.generate_public_key()
 

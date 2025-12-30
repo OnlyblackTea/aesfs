@@ -7,7 +7,7 @@ designed with separation of concerns and minimal dependencies between components
 
 from .aes import AES
 from .logger import setup_logger, get_logger
-from .diffie_hellman import DiffieHellman
+from .diffie_hellman import DH
 
 __version__ = "0.1.0"
-__all__ = ["AES", "setup_logger", "get_logger", "DiffieHellman"]
+__all__ = ["AES", "setup_logger", "get_logger", "DH"]

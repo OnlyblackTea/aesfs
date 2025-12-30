@@ -133,7 +133,7 @@ Dependency rules:
 **Purpose**: Implement Diffie-Hellman key exchange protocol
 
 **Key Classes**:
-- `DiffieHellman`: Main class for key exchange
+- `DH`: Main class for key exchange
 
 **Key Methods**:
 - `__init__(prime, generator)`: Initialize with parameters (uses standard 2048-bit prime by default)
@@ -260,14 +260,14 @@ assert decrypted == plaintext
 ### Diffie-Hellman Key Exchange with AES
 
 ```python
-from aesfs import DiffieHellman, AES
+from aesfs import DH, AES
 
 # Alice and Bob perform key exchange
-alice = DiffieHellman()
+alice = DH()
 alice.generate_private_key()
 alice_public = alice.generate_public_key()
 
-bob = DiffieHellman()
+bob = DH()
 bob.generate_private_key()
 bob_public = bob.generate_public_key()
 

@@ -29,9 +29,9 @@ STANDARD_PRIME_2048 = int(
 STANDARD_GENERATOR = 2
 
 
-class DiffieHellman:
+class DH:
     """
-    Diffie-Hellman key exchange implementation.
+    Diffie-Hellman (DH) key exchange implementation.
     
     This class allows two parties to establish a shared secret over an
     insecure channel. Each party generates a private key and computes

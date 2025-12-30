@@ -6,7 +6,7 @@ to establish a shared secret and use it for AES encryption.
 """
 
 from aesfs import AES
-from aesfs.diffie_hellman import DiffieHellman
+from aesfs.diffie_hellman import DH
 
 
 def example_basic_key_exchange():
@@ -19,13 +19,13 @@ def example_basic_key_exchange():
     # They agree on using standard parameters (this would be public knowledge)
     
     # Alice generates her keys
-    alice = DiffieHellman()
+    alice = DH()
     alice.generate_private_key()
     alice_public = alice.generate_public_key()
     print(f"\nAlice's public key (first 50 digits): {str(alice_public)[:50]}...")
     
     # Bob generates his keys
-    bob = DiffieHellman()
+    bob = DH()
     bob.generate_private_key()
     bob_public = bob.generate_public_key()
     print(f"Bob's public key (first 50 digits):   {str(bob_public)[:50]}...")
@@ -50,11 +50,11 @@ def example_key_exchange_with_aes():
     # Alice and Bob want to communicate securely
     
     # Step 1: Key exchange
-    alice = DiffieHellman()
+    alice = DH()
     alice.generate_private_key()
     alice_public = alice.generate_public_key()
     
-    bob = DiffieHellman()
+    bob = DH()
     bob.generate_private_key()
     bob_public = bob.generate_public_key()
     
@@ -103,14 +103,14 @@ def example_custom_parameters():
     print(f"Generator (g): {generator}")
     
     # Alice
-    alice = DiffieHellman(prime=prime, generator=generator)
+    alice = DH(prime=prime, generator=generator)
     alice.set_private_key(6)
     alice_public = alice.generate_public_key()
     print(f"\nAlice's private key: {alice.get_private_key()}")
     print(f"Alice's public key: {alice_public}")
     
     # Bob
-    bob = DiffieHellman(prime=prime, generator=generator)
+    bob = DH(prime=prime, generator=generator)
     bob.set_private_key(15)
     bob_public = bob.generate_public_key()
     print(f"\nBob's private key: {bob.get_private_key()}")
@@ -133,11 +133,11 @@ def example_multiple_key_sizes():
     print("=" * 60)
     
     # Perform key exchange
-    alice = DiffieHellman()
+    alice = DH()
     alice.generate_private_key()
     alice_public = alice.generate_public_key()
     
-    bob = DiffieHellman()
+    bob = DH()
     bob.generate_private_key()
     bob_public = bob.generate_public_key()
     
@@ -172,11 +172,11 @@ def example_security_demonstration():
     print("=" * 60)
     
     # Alice and Bob perform key exchange
-    alice = DiffieHellman(prime=23, generator=5)
+    alice = DH(prime=23, generator=5)
     alice.set_private_key(6)
     alice_public = alice.generate_public_key()
     
-    bob = DiffieHellman(prime=23, generator=5)
+    bob = DH(prime=23, generator=5)
     bob.set_private_key(15)
     bob_public = bob.generate_public_key()
     

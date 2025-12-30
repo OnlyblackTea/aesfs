@@ -2,7 +2,7 @@
 
 import unittest
 from aesfs.diffie_hellman import (
-    DiffieHellman, 
+    DH, 
     modular_exponentiation, 
     is_prime,
     STANDARD_PRIME_2048,
@@ -10,12 +10,12 @@ from aesfs.diffie_hellman import (
 )
 
 
-class TestDiffieHellman(unittest.TestCase):
+class TestDH(unittest.TestCase):
     """Test Diffie-Hellman key exchange."""
     
     def test_initialization_with_defaults(self):
         """Test DH initialization with default parameters."""
-        dh = DiffieHellman()
+        dh = DH()
         self.assertEqual(dh.prime, STANDARD_PRIME_2048)
         self.assertEqual(dh.generator, STANDARD_GENERATOR)
         self.assertIsNone(dh.get_private_key())
@@ -26,32 +26,32 @@ class TestDiffieHellman(unittest.TestCase):
         """Test DH initialization with custom parameters."""
         prime = 23  # Small prime for testing
         generator = 5
-        dh = DiffieHellman(prime=prime, generator=generator)
+        dh = DH(prime=prime, generator=generator)
         self.assertEqual(dh.prime, prime)
         self.assertEqual(dh.generator, generator)
     
     def test_invalid_prime(self):
         """Test error handling for invalid prime."""
         with self.assertRaises(ValueError):
-            DiffieHellman(prime=1, generator=2)
+            DH(prime=1, generator=2)
         
         with self.assertRaises(ValueError):
-            DiffieHellman(prime=0, generator=2)
+            DH(prime=0, generator=2)
     
     def test_invalid_generator(self):
         """Test error handling for invalid generator."""
         with self.assertRaises(ValueError):
-            DiffieHellman(prime=23, generator=0)
+            DH(prime=23, generator=0)
         
         with self.assertRaises(ValueError):
-            DiffieHellman(prime=23, generator=23)
+            DH(prime=23, generator=23)
         
         with self.assertRaises(ValueError):
-            DiffieHellman(prime=23, generator=25)
+            DH(prime=23, generator=25)
     
     def test_generate_private_key(self):
         """Test private key generation."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         private_key = dh.generate_private_key()
         
         self.assertIsNotNone(private_key)
@@ -61,13 +61,13 @@ class TestDiffieHellman(unittest.TestCase):
     
     def test_set_private_key(self):
         """Test setting a custom private key."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         dh.set_private_key(10)
         self.assertEqual(dh.get_private_key(), 10)
     
     def test_set_invalid_private_key(self):
         """Test error handling for invalid private key."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         
         with self.assertRaises(ValueError):
             dh.set_private_key(0)
@@ -83,7 +83,7 @@ class TestDiffieHellman(unittest.TestCase):
     
     def test_generate_public_key(self):
         """Test public key generation."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         dh.set_private_key(6)
         public_key = dh.generate_public_key()
         
@@ -93,14 +93,14 @@ class TestDiffieHellman(unittest.TestCase):
     
     def test_generate_public_key_without_private_key(self):
         """Test error when generating public key without private key."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         
         with self.assertRaises(ValueError):
             dh.generate_public_key()
     
     def test_compute_shared_secret(self):
         """Test computing shared secret."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         dh.set_private_key(6)
         
         # Other party's public key
@@ -116,14 +116,14 @@ class TestDiffieHellman(unittest.TestCase):
     
     def test_compute_shared_secret_without_private_key(self):
         """Test error when computing shared secret without private key."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         
         with self.assertRaises(ValueError):
             dh.compute_shared_secret(10)
     
     def test_compute_shared_secret_with_invalid_other_key(self):
         """Test error handling for invalid other public key."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         dh.set_private_key(6)
         
         with self.assertRaises(ValueError):
@@ -145,12 +145,12 @@ class TestDiffieHellman(unittest.TestCase):
         generator = 5
         
         # Alice's side
-        alice = DiffieHellman(prime=prime, generator=generator)
+        alice = DH(prime=prime, generator=generator)
         alice.set_private_key(6)
         alice_public = alice.generate_public_key()
         
         # Bob's side
-        bob = DiffieHellman(prime=prime, generator=generator)
+        bob = DH(prime=prime, generator=generator)
         bob.set_private_key(15)
         bob_public = bob.generate_public_key()
         
@@ -164,12 +164,12 @@ class TestDiffieHellman(unittest.TestCase):
     def test_key_exchange_with_standard_params(self):
         """Test key exchange with standard 2048-bit parameters."""
         # Alice
-        alice = DiffieHellman()
+        alice = DH()
         alice.generate_private_key()
         alice_public = alice.generate_public_key()
         
         # Bob
-        bob = DiffieHellman()
+        bob = DH()
         bob.generate_private_key()
         bob_public = bob.generate_public_key()
         
@@ -185,7 +185,7 @@ class TestDiffieHellman(unittest.TestCase):
     
     def test_get_shared_secret_bytes(self):
         """Test converting shared secret to bytes."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         dh.set_private_key(6)
         dh.compute_shared_secret(19)
         
@@ -197,14 +197,14 @@ class TestDiffieHellman(unittest.TestCase):
     
     def test_get_shared_secret_bytes_without_secret(self):
         """Test error when getting bytes without computing shared secret."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         
         with self.assertRaises(ValueError):
             dh.get_shared_secret_bytes()
     
     def test_private_key_reset_on_set(self):
         """Test that public key and shared secret are reset when private key changes."""
-        dh = DiffieHellman(prime=23, generator=5)
+        dh = DH(prime=23, generator=5)
         dh.set_private_key(6)
         dh.generate_public_key()
         dh.compute_shared_secret(19)

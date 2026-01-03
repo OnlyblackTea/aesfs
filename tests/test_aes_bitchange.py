@@ -145,6 +145,7 @@ def print_state_comparison(stage_name: str, state1: List[List[int]], state2: Lis
     if differences:
         print("\nDetailed differences:")
         for row, col, val1, val2 in differences:
+            # Convert 2D state matrix position to linear byte position in column-major order
             position = row + 4 * col
             print(f"  Position [{row}][{col}] (byte {position:2d}): 0x{val1:02X} -> 0x{val2:02X} (XOR: 0x{val1 ^ val2:02X})")
 
@@ -273,7 +274,7 @@ class TestAESBitChange(unittest.TestCase):
         key = bytes([0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
                      0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c])
         
-        # Multiple bytes different
+        # Single bit different in byte 1: 0xAA vs 0xAB
         plaintext1 = bytes([0xAA] * 16)
         plaintext2 = bytes([0xAA, 0xAB, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
                            0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA])
